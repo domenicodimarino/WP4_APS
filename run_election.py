@@ -32,11 +32,17 @@ def sezione(titolo: str):
 
 
 def voto_casuale():
-    return (
-        random.choice(list(config.SINDACI)),
-        random.choice(list(config.LISTE)),
-        random.sample(list(config.CONSIGLIERI), k=random.randint(0, config.MAX_PREFERENZE_CONSIGLIERI)),
-    )
+    sindaco = random.choice(list(config.SINDACI))
+    lista = random.choice(list(config.LISTE))
+    
+    # Estrae i candidati disponibili solo per la lista estratta casualmente
+    consiglieri_disponibili = list(config.CONSIGLIERI.get(lista, {}).keys())
+    
+    # Seleziona un numero di preferenze da 0 al massimo consentito
+    k_preferenze = random.randint(0, min(config.MAX_PREFERENZE_CONSIGLIERI, len(consiglieri_disponibili)))
+    consiglieri_scelti = random.sample(consiglieri_disponibili, k=k_preferenze)
+    
+    return sindaco, lista, consiglieri_scelti
 
 
 def main(n_elettori: int = 8):

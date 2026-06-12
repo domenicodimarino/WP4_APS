@@ -25,21 +25,23 @@ RANDOM_DELAY_MAX_S = 0.05
 
 # --- Scheda elettorale: candidati Sindaco, liste collegate, consiglieri ---
 SINDACI = {
-    1: "Mario Rossi",
-    2: "Lucia Bianchi",
-    3: "Giuseppe Verdi",
+    1: "Raffaele Giordano",
+    2: "Luigi Petrone",
+    3: "Eugenio Canora",
+    4: "Giancarlo Accarino",
+    5: "Armando Lamberti"    
 }
 
 LISTE = {
-    10: "Cava Civica",
-    11: "Insieme per Cava",
-    12: "Cava nel Cuore",
+    10: "Fratelli d'Italia",
+    11: "La Fratellanza",
+    12: "Cava Sia"
 }
 
 CONSIGLIERI = {
-    101: "Esposito A.", 102: "Romano B.", 103: "Ferrara C.",
-    104: "Gallo D.",    105: "De Luca E.", 106: "Santoro F.",
-    107: "Greco G.",    108: "Conte H.",   109: "Marino I.",
+    10: {101: "Candidato A", 102: "Candidato B"},
+    11: {201: "Candidato C (Lista 11)", 202: "Candidato D (Lista 11)"},
+    12: {301: "Candidato E (Lista 12)", 302: "Candidato F (Lista 12)"},
 }
 
 
@@ -47,8 +49,11 @@ def scheda_valida_semantica(v: dict) -> bool:
     """Validazione semantica di un voto V decifrato (usata in Fase 4)."""
     if v.get("sindaco") not in SINDACI:
         return False
-    if v.get("lista") not in LISTE:
+    
+    chosen_lista = v.get("lista")
+    if chosen_lista not in LISTE:
         return False
+        
     cons = v.get("consiglieri", [])
     if not isinstance(cons, list):
         return False
@@ -56,6 +61,10 @@ def scheda_valida_semantica(v: dict) -> bool:
         return False
     if len(set(cons)) != len(cons):           # nessuna preferenza ripetuta
         return False
-    if any(c not in CONSIGLIERI for c in cons):
+        
+    # Preleva i consiglieri validi SOLO per la lista votata
+    consiglieri_validi_per_lista = CONSIGLIERI.get(chosen_lista, {})
+    if any(c not in consiglieri_validi_per_lista for c in cons):
         return False
+        
     return True

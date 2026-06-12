@@ -36,10 +36,11 @@ def guard(method):
     return wrapper
 
 class ElectionGUI(ctk.CTk):
-    N_ELETTORI = 12
+    N_ELETTORI = 1000
 
     def __init__(self):
         super().__init__()
+        self.update()
         self.title("Voto Elettronico — Cava de' Tirreni (WP4)")
         self.geometry("1100x800")
         
@@ -132,7 +133,15 @@ class ElectionGUI(ctk.CTk):
         ctk.CTkLabel(card, text="3. Lista Collegata").pack(anchor="w", padx=20)
         self.var_lista = ctk.StringVar()
         self.lista_opts = [f"{k} — {v}" for k, v in config.LISTE.items()]
-        self.om_lista = ctk.CTkOptionMenu(card, variable=self.var_lista, values=self.lista_opts, width=250)
+
+        self.om_lista = ctk.CTkOptionMenu(
+            card, 
+            variable=self.var_lista, 
+            values=self.lista_opts, 
+            width=250,
+            command=self._aggiorna_consiglieri_filtrati
+        )
+
         self.om_lista.pack(anchor="w", padx=20, pady=(0, 15))
 
         # Consiglieri (Nuovo sistema con ScrollableFrame e Checkbox)
@@ -141,10 +150,24 @@ class ElectionGUI(ctk.CTk):
         self.consiglieri_frame.pack(anchor="w", padx=20, pady=(0, 20))
         
         self.consiglieri_checkboxes = []
-        for k, v in config.CONSIGLIERI.items():
-            cb = ctk.CTkCheckBox(self.consiglieri_frame, text=f"{k} — {v}")
-            cb.pack(anchor="w", pady=2, padx=5)
-            self.consiglieri_checkboxes.append((k, cb))
+        
+        # Cicliamo prima sulle liste per creare i raggruppamenti visivi
+        for id_lista, nome_lista in config.LISTE.items():
+            # Intestazione della Lista (es. --- Cava Civica ---)
+            lbl_gruppo = ctk.CTkLabel(
+                self.consiglieri_frame, 
+                text=f"--- {nome_lista} ---", 
+                font=ctk.CTkFont(size=11, weight="bold"),
+                text_color="gray"
+            )
+            lbl_gruppo.pack(anchor="w", pady=(6, 2), padx=5)
+            
+            # Checkbox per ogni consigliere appartenente a QUELLA specifica lista
+            candidati_lista = config.CONSIGLIERI.get(id_lista, {})
+            for k, v in candidati_lista.items():
+                cb = ctk.CTkCheckBox(self.consiglieri_frame, text=f"{k} — {v}")
+                cb.pack(anchor="w", pady=2, padx=15)
+                self.consiglieri_checkboxes.append((k, cb)) # Mantiene l'ID originale (es. 101)
 
         # Bottoni Azione
         self.btn_vota = ctk.CTkButton(card, text="Cifra e Sottometti Voto", font=ctk.CTkFont(weight="bold"), command=self.vota)
@@ -343,7 +366,14 @@ class ElectionGUI(ctk.CTk):
         for cred in rimanenti:
             s = random.choice(list(config.SINDACI))
             l = random.choice(list(config.LISTE))
-            cons = random.sample(list(config.CONSIGLIERI), k=random.randint(0, config.MAX_PREFERENZE_CONSIGLIERI))
+            
+            # CORREZIONE: Estrae i candidati disponibili SOLO per la lista estratta
+            candidati_disponibili = list(config.CONSIGLIERI.get(l, {}).keys())
+            
+            # Seleziona un numero di preferenze valido
+            k_pref = random.randint(0, min(config.MAX_PREFERENZE_CONSIGLIERI, len(candidati_disponibili)))
+            cons = random.sample(candidati_disponibili, k=k_pref)
+            
             try:
                 self._esegui_voto(cred, s, l, cons)
                 self._log(f"[{cred}] Voto automatico completato.")
@@ -431,7 +461,37 @@ class ElectionGUI(ctk.CTk):
     def _fill(self, tb, agg, names):
         tb.delete("1.0", "end")
         for k, v in sorted(agg.items(), key=lambda x: -x[1]):
-            tb.insert("end", f"{names.get(k, str(k)):<25} | Voti: {v}\n")
+            # Gestione dinamica: funziona sia con dizionari piatti che annidati
+            name_str = str(k)
+            if any(isinstance(val, dict) for val in names.values()):
+                # Se è annidato (come i CONSIGLIERI), cerca nei sotto-dizionari
+                for sub_dict in names.values():
+                    if k in sub_dict:
+                        name_str = sub_dict[k]
+                        break
+            else:
+                # Se è piatto (come SINDACI o LISTE)
+                name_str = names.get(k, str(k))
+                
+            tb.insert("end", f"{name_str:<25} | Voti: {v}\n")
+
+    def _aggiorna_consiglieri_filtrati(self, scelta_lista):
+        # Estraiamo l'ID numerico della lista selezionata (es. "10 — Lista Civica" -> 10)
+        id_lista = self._parse_id(scelta_lista)
+        
+        # Distruggiamo le vecchie checkbox nello scrollable frame
+        for widget in self.consiglieri_frame.winfo_children():
+            widget.destroy()
+        self.consiglieri_checkboxes.clear()
+        
+        # Preleviamo solo i consiglieri associati a QUELLA lista dal config
+        consiglieri_della_lista = config.CONSIGLIERI.get(id_lista, {})
+        
+        # Ridisegnamo solo i candidati pertinenti
+        for k, v in consiglieri_della_lista.items():
+            cb = ctk.CTkCheckBox(self.consiglieri_frame, text=f"{k} — {v}")
+            cb.pack(anchor="w", pady=2, padx=5)
+            self.consiglieri_checkboxes.append((k, cb))
 
 def main():
     app = ElectionGUI()
