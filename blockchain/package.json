@@ -1,0 +1,14 @@
+{
+  "name": "wp4-sth-anchor",
+  "version": "1.0.0",
+  "description": "Anchoring on-chain dello STH del Bulletin Board (WP4, Lab 5)",
+  "scripts": {
+    "compile": "node compile.js",
+    "deploy": "node deploy.js",
+    "anchor": "node anchor.js"
+  },
+  "dependencies": {
+    "solc": "^0.8.26",
+    "web3": "^4.0.0"
+  }
+}
