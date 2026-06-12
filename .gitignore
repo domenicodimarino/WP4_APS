@@ -1,1 +1,5 @@
-/.DS_Store
+# Cache di Python (file compilati)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
