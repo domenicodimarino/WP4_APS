@@ -71,9 +71,9 @@ class ElectionGUI(ctk.CTk):
     # Posizione dei due dropdown preferenze rispetto al CENTRO della lista.
     # La Y e' DERIVATA da rely (niente piu' campo drop_y per ogni lista): in questo
     # modo i dropdown seguono sempre il simbolo e non si possono piu' disallineare.
-    DROP_DX = 0.085       # spostamento orizzontale verso destra (per non coprire il simbolo)
-    DROP_OFFSET_Y = 0.04  # quanto sopra il centro della lista parte il primo dropdown
-    DROP_DY = 0.03        # distanza verticale tra il primo e il secondo dropdown
+    DROP_DX = 0.095      # Rimane spinto a destra, fuori dal simbolo
+    DROP_OFFSET_Y = 0.035 # Alza il primo dropdown sopra la linea di mezzeria
+    DROP_DY = 0.065        # distanza verticale tra il primo e il secondo dropdown
 
     def __init__(self):
         super().__init__()
@@ -533,7 +533,7 @@ class ElectionGUI(ctk.CTk):
         self._select_lista(lid)
 
     def _select_lista(self, lid: int):
-        """Attivazione condizionale: abilita i dropdown SOLO della lista spuntata (Punto 3)."""
+        """Attivazione condizionale: abilita i dropdown SOLO della lista spuntata."""
         self.selected_lista.set(lid)
         for k, item in self.ui_liste_marks.items():
             self.canvas.itemconfigure(item, state="normal" if k == lid else "hidden")
@@ -542,10 +542,10 @@ class ElectionGUI(ctk.CTk):
         for id_lista, lista_dropdowns in self.ui_dropdowns_mappati.items():
             if id_lista == lid:
                 for om in lista_dropdowns:
-                    om.configure(state="normal")  # Sblocca
+                    om.configure(state="normal")  # Sblocca e accende i box della lista cliccata
             else:
                 for om in lista_dropdowns:
-                    om.configure(state="disabled")  # Disattiva e spegne
+                    om.configure(state="disabled")  # Spegne e oscura i box delle altre liste
                     self.selected_consiglieri_vars[id_lista][0].set("Preferenza 1")
                     self.selected_consiglieri_vars[id_lista][1].set("Preferenza 2")
 
@@ -597,6 +597,11 @@ class ElectionGUI(ctk.CTk):
 
         for w in self.interactive_widgets:
             try:
+                # Modifica qui: se è un dropdown delle liste, non toccare lo stato globale all'avvio
+                if any(w in list_om for list_om in self.ui_dropdowns_mappati.values()):
+                    if not running:
+                        w.configure(state="disabled") # Spegni tutto se il sistema si ferma
+                    continue
                 w.configure(state=state)
             except Exception:
                 pass
