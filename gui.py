@@ -347,11 +347,18 @@ class ElectionGUI(ctk.CTk):
                 om = ctk.CTkOptionMenu(
                     self.canvas, variable=self.selected_consiglieri_vars[l_id][idx],
                     values=["Nessuna Preferenza"] + candidati_lista, width=140, font=ctk.CTkFont(size=9),
+                    command=lambda choice, lid=l_id, i=idx: self._reset_se_nessuna(lid, i, choice),
                     state="disabled"  # <-- OSCURATI AL BOOT
                 )
                 om.place(relx=pos["relx"] + self.DROP_DX, rely=pos["rely"] - self.DROP_OFFSET_Y + (idx * self.DROP_DY), anchor="center")
                 self.interactive_widgets.append(om)
                 self.ui_dropdowns_mappati[l_id].append(om)
+    
+    def _reset_se_nessuna(self, l_id, idx, choice):
+        """Se l'utente sceglie 'Nessuna Preferenza', ripristina il placeholder."""
+        if choice == "Nessuna Preferenza":
+            placeholder = "Preferenza 1" if idx == 0 else "Preferenza 2"
+            self.selected_consiglieri_vars[l_id][idx].set(placeholder)
 
     def _on_canvas_resize(self, event):
         w, h = event.width, event.height
