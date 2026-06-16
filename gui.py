@@ -51,7 +51,7 @@ def guard(method):
     return wrapper
 
 class ElectionGUI(ctk.CTk):
-    N_ELETTORI = 12
+    N_ELETTORI = 8
 
     # ===== PARAMETRI GRAFICI TARABILI (frazioni di larghezza/altezza del canvas) =====
     # NB: relx/rely di ogni sindaco/lista indicano il CENTRO della casella.
@@ -133,8 +133,9 @@ class ElectionGUI(ctk.CTk):
         self.status_var = ctk.StringVar(value="Stato: Inattivo")
         ctk.CTkLabel(bar, textvariable=self.status_var, font=ctk.CTkFont(size=11, slant="italic")).pack(side="right", padx=15)
 
-        self.btn_debug = ctk.CTkButton(bar, text="Debug Coord: OFF", width=150, fg_color="gray40", command=self._toggle_debug)
-        self.btn_debug.pack(side="right", padx=10, pady=12)
+        #TASTO DEBUG, DISATTIVATO
+        #self.btn_debug = ctk.CTkButton(bar, text="Debug Coord: OFF", width=150, fg_color="gray40", command=self._toggle_debug)
+        #self.btn_debug.pack(side="right", padx=10, pady=12)
 
         # Navigazione a 3 Tab (Risolve il problema dello spazio visivo della scheda)
         nav = ctk.CTkFrame(self, fg_color="transparent")
@@ -594,6 +595,7 @@ class ElectionGUI(ctk.CTk):
         self.btn_vota.configure(state=state)
         self.btn_batch.configure(state=state)
         self.om_elettore.configure(state=state)
+        self.btn_scrutina.configure(state=state)
 
         for w in self.interactive_widgets:
             try:
@@ -612,6 +614,13 @@ class ElectionGUI(ctk.CTk):
 
     @guard
     def avvia_sistema(self):
+        try:
+            if self.idp: self.idp.stop()
+            if self.urna: self.urna.stop()
+        except Exception:
+            pass
+        self.idp = self.urna = self.commissione = None
+
         n = self.N_ELETTORI
         anagrafe = {f"elettore_{i}" for i in range(n)}
         self.idp = IdentityProvider(anagrafe)

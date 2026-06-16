@@ -96,13 +96,11 @@ def build_sth(n: int, root: str, urna_sign_sk) -> dict:
     """STH_n = (n, ts, root, Sign_{SK_Sign_Urna}(H(n || ts || root)))."""
     ts = int(time.time())
     message = f"{n}|{ts}|{root}".encode()
-    digest = cp.sha256(message)
-    signature = cp.rsa_sign(urna_sign_sk, digest)
+    signature = cp.rsa_sign(urna_sign_sk, message)
     return {"n": n, "ts": ts, "root": root, "sig": signature.hex()}
 
 
 def verify_sth(sth: dict, urna_sign_pk) -> bool:
     """Verifica la firma RSA-PSS sullo STH."""
     message = f"{sth['n']}|{sth['ts']}|{sth['root']}".encode()
-    digest = cp.sha256(message)
-    return cp.rsa_verify(urna_sign_pk, digest, bytes.fromhex(sth["sig"]))
+    return cp.rsa_verify(urna_sign_pk, message, bytes.fromhex(sth["sig"]))

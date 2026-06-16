@@ -38,6 +38,8 @@ class VoterClient:
     # ---------------- Fase 1 ----------------
     def fase1_richiedi_token(self):
         t0 = time.perf_counter()
+        # NB: la verifica è significativa a urne congelate (frozen): il BB non
+        # cambia tra inclusion_proof e get_sth, quindi le due root coincidono.
         resp, sent, recv = transport.request(
             config.IDP_HOST, config.IDP_PORT,
             {"op": "request_token", "credentials": self.credentials},

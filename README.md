@@ -59,12 +59,14 @@ python -m wp4.run_election 8
 python -m wp4.benchmark 16 200      # -> wp4/benchmark_report.md
 ```
 
-La GUI (`gui.py`, Tkinter, nessuna dipendenza esterna) pilota gli stessi attori
-del prototipo: avvio sistema, scheda elettorale (Sindaco/Lista/Consiglieri),
-voto singolo o batch casuale, Bulletin Board live con verifica di inclusione,
-ricevuta + verifica individuale, e tab "Scrutinio" per la Fase 4 (soglia
-Shamir, shuffle, Encrypt-then-MAC, risultati aggregati, STH finale, verifica
-universale). Non implementa nuove primitive: è solo un front-end didattico.
+La GUI (`gui.py`, basata su **CustomTkinter** + **Pillow**) pilota gli
+stessi attori del prototipo: avvio sistema, scheda elettorale
+(Sindaco/Lista/Consiglieri), voto singolo o batch casuale, Bulletin
+Board live con verifica di inclusione, ricevuta + verifica individuale,
+e tab "Scrutinio" per la Fase 4 (soglia Shamir, shuffle,
+Encrypt-then-MAC, risultati aggregati, STH finale, verifica universale).
+Non implementa nuove primitive: è solo un front-end didattico. Le
+dipendenze grafiche sono in `requirements.txt`.
 
 > **macOS**: se `python -m wp4.gui` dà `ModuleNotFoundError: No module named
 > 'tkinter'`, installa il binding Tk con `brew install python-tk` (oppure usa
